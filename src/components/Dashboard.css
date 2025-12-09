@@ -1,0 +1,220 @@
+.dashboard-container {
+  height: 100%;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard-header {
+  padding: 1.5rem 2rem;
+  border-bottom: 2px solid #FF6600;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(to right, #fff, #fff8f0);
+}
+
+.dashboard-header h2 {
+  margin: 0 0 0.25rem 0;
+  color: #333;
+  font-size: 1.8rem;
+}
+
+.dashboard-header p {
+  margin: 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.export-btn {
+  padding: 0.75rem 1.5rem;
+  background: #FF6600;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+}
+
+.export-btn:hover {
+  background: #FF7700;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 102, 0, 0.3);
+}
+
+.dashboard-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+  gap: 1.5rem;
+}
+
+.dashboard-section {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  border: 2px solid #f0f0f0;
+  transition: all 0.3s ease;
+  animation: slideIn 0.4s ease-out;
+}
+
+.dashboard-section:hover {
+  border-color: #FF6600;
+  box-shadow: 0 4px 12px rgba(255, 102, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dashboard-section h3 {
+  color: #FF6600;
+  font-size: 1.1rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #FFE6D5;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.section-content {
+  padding-left: 1rem;
+}
+
+.section-content ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.section-content li {
+  margin-bottom: 0.75rem;
+  padding-left: 1.5rem;
+  position: relative;
+}
+
+.section-content li::before {
+  content: "▸";
+  position: absolute;
+  left: 0;
+  color: #FF6600;
+  font-weight: bold;
+}
+
+.placeholder {
+  color: #999;
+  font-style: italic;
+  padding: 1rem;
+  background: #f9f9f9;
+  border-radius: 6px;
+  border-left: 3px solid #ddd;
+}
+
+.editable-field {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 4px;
+  transition: background 0.2s;
+  cursor: pointer;
+}
+
+.editable-field:hover {
+  background: #f9f9f9;
+}
+
+.editable-field span {
+  flex: 1;
+  line-height: 1.5;
+}
+
+.edit-icon {
+  opacity: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: opacity 0.2s;
+}
+
+.editable-field:hover .edit-icon {
+  opacity: 1;
+}
+
+.editable-field.editing {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: #fff;
+  border: 2px solid #FF6600;
+  padding: 0.75rem;
+}
+
+.editable-field.editing textarea {
+  width: 100%;
+  min-height: 60px;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  resize: vertical;
+}
+
+.editable-field.editing textarea:focus {
+  outline: none;
+  border-color: #FF6600;
+}
+
+.edit-buttons {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.edit-buttons button {
+  padding: 0.4rem 0.8rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.edit-buttons button:first-child {
+  background: #4CAF50;
+  color: white;
+}
+
+.edit-buttons button:first-child:hover {
+  background: #45a049;
+}
+
+.edit-buttons button:last-child {
+  background: #f44336;
+  color: white;
+}
+
+.edit-buttons button:last-child:hover {
+  background: #da190b;
+}
