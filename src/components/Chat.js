@@ -2,11 +2,11 @@ import React, { useState, useRef, useEffect } from 'react';
 import './Chat.css';
 import aiService from '../services/aiService';
 
-const Chat = ({ onAnswerUpdate }) => {
+const Chat = ({ onAnswerUpdate, currentData }) => {
   const [messages, setMessages] = useState([
     {
       role: 'assistant',
-      content: 'Hej! 👋 Jag är här för att hjälpa dig skapa en riktigt bra utbildningsdesign. Låt oss börja med att utforska er nuvarande utmaning. Vad ser ni för utmaningar hos era chefer idag?'
+      content: 'Hej! 👋 Jag är här för att hjälpa dig skapa en riktigt bra utbildningsdesign. Låt oss börja! Vem är den här utbildningen för?'
     }
   ]);
   const [input, setInput] = useState('');
@@ -31,8 +31,8 @@ const Chat = ({ onAnswerUpdate }) => {
     setIsLoading(true);
 
     try {
-      // Skicka till AI-tjänsten
-      const { response, extractedData } = await aiService.sendMessage(userInput);
+      // Skicka till AI-tjänsten med aktuell data
+      const { response, extractedData } = await aiService.sendMessage(userInput, currentData);
       
       console.log('Extracted data:', extractedData);
       

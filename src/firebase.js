@@ -5,7 +5,7 @@ import { initializeApp } from "firebase/app";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyAroZqMpkMbEgSLQ3I-O51BHyaugE8Rfnw",
+  apiKey: "AIzaSyAJ3W7G5Zr6TwBOQ1v6v11x2YsFCpNVFJI",
   authDomain: "learningdesign-bced2.firebaseapp.com",
   projectId: "learningdesign-bced2",
   storageBucket: "learningdesign-bced2.appspot.com",

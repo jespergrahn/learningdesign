@@ -11,9 +11,9 @@ console.log("Firebase init:", app);
 
 function App() {
   const [designData, setDesignData] = useState({
+    targetAudience: '',
     challenges: [],
     success: [],
-    targetAudience: '',
     learningGoals: [],
     motivation: [],
     behaviors: [],
@@ -37,12 +37,20 @@ function App() {
   const handleAnswerUpdate = (section, value) => {
     console.log('handleAnswerUpdate anropad:', section, value);
     setDesignData(prev => {
-      const updated = {
-        ...prev,
-        [section]: Array.isArray(prev[section]) 
-          ? [...prev[section], value]
-          : value
-      };
+      // För targetAudience (string): ersätt direkt med berikad version
+      if (section === 'targetAudience') {
+        return { ...prev, [section]: value };
+      }
+      
+      // För arrays: ersätt sista elementet om det finns, annars lägg till
+      if (Array.isArray(prev[section])) {
+        const newArray = prev[section].length > 0 
+          ? [...prev[section].slice(0, -1), value]  // Ersätt sista med berikad version
+          : [value];  // Lägg till första
+        return { ...prev, [section]: newArray };
+      }
+      
+      const updated = { ...prev, [section]: value };
       console.log('Uppdaterad designData:', updated);
       return updated;
     });
@@ -65,7 +73,7 @@ function App() {
             <Dashboard data={designData} onUpdate={handleUpdateData} />
           </div>
           <div className="chat-panel">
-            <Chat onAnswerUpdate={handleAnswerUpdate} />
+            <Chat onAnswerUpdate={handleAnswerUpdate} currentData={designData} />
           </div>
         </div>
       </main>
