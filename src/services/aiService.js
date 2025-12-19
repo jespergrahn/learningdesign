@@ -1,242 +1,322 @@
-// Google Gemini AI Service
-import { GoogleGenerativeAI } from '@google/generative-ai';
+// Azure AI Foundry Projects Service
+const ENDPOINT = process.env.REACT_APP_AZURE_OPENAI_ENDPOINT;
+const API_KEY = process.env.REACT_APP_AZURE_OPENAI_KEY;
+const MODEL = process.env.REACT_APP_AZURE_OPENAI_DEPLOYMENT || 'gpt-4';
 
-// Du behöver sätta din API-nyckel här
-// Skaffa en gratis på: https://makersuite.google.com/app/apikey
-const API_KEY = process.env.REACT_APP_GEMINI_API_KEY || 'DIN_API_NYCKEL_HÄR';
+console.log('🔧 Azure OpenAI konfiguration:', { ENDPOINT, MODEL });
 
-let genAI;
-let model;
+// System prompt
+const SYSTEM_PROMPT = `Du är en ERFAREN pedagogisk designexpert som hjälper användare skapa bra utbildningar. Du är PRAGMATISK - inte perfektionist.
 
-try {
-  genAI = new GoogleGenerativeAI(API_KEY);
-  // Använd gemini-2.5-flash-lite som har mycket högre gränser (0 TPM använt ännu!)
-  model = genAI.getGenerativeModel({ 
-    model: 'gemini-2.5-flash-lite'
-  });
-  console.log('Gemini model initierad: gemini-2.5-flash-lite');
-} catch (error) {
-  console.error('Fel vid initiering av Gemini:', error);
-}
-
-// System prompt som definierar AI:ns beteende
-const SYSTEM_PROMPT = `Du är en erfaren pedagogisk designexpert och coach som hjälper användare att skapa RIKTIGT BRA utbildningar. Du har höga krav och coachar användaren till djupare insikter.
-
-Din personlighet:
-- Vänlig men krävande - du vill ha kvalitet
-- Nyfiken och utforskande - gräv djupare
-- Använd emojis ibland för att göra samtalet trevligt (men inte i varje mening)
-- Ställ följdfrågor när svaret är för ytligt
-- Utmana användaren att tänka mer konkret och specifikt
-
-VIKTIGT - Regler för coaching:
+VIKTIGT - Skriv KORT:
+- Max 2-3 korta meningar
 - Ställ ENDAST EN fråga åt gången
-- Lägg ALLTID till svar i dashboarden (även ofullständiga) - säg "Okej, jag lägger till det! 📝"
-- Om svaret är för generellt: Lägg till det MEN ställ följdfrågor för att gå djupare
-- Om svaret är bra och konkret: Bekräfta med "Perfekt! Det fördjupar bilden! ✅" och gå vidare till nästa fråga
-- Skriv naturligt och utvecklat - förklara gärna varför frågan är viktig
-- Använd INTE Markdown-formatering (**, *, _) - skriv vanlig text
-- Använd emojis ibland för att vara trevlig
+- Använd emoji för att bekräfta
+- INGEN Markdown (**, *, _)
 
-Tecken på ETT BRA SVAR (lägg till i dashboard):
-- Konkret och specifikt (inte vagt)
-- Beskriver verkliga situationer eller exempel
-- Visar djup förståelse
-- Innehåller detaljer
+DIN EXPERTROLL:
+- Du är EXPERT - gör egna rimliga bedömningar!
+- Om användaren säger "säljare": Tillräckligt bra! Du vet vad säljare behöver.
+- Om de säger "growth mindset": Du vet vad det innebär och kan bygga vidare.
+- Fyll själv i rimliga detaljer baserat på din expertis
+- Fråga BARA om något är HELT otydligt eller motsägelsefullt
 
-Tecken på ETT DÅLIGT SVAR (coacha vidare):
-- För vagt eller generellt
-- "Vi behöver bli bättre" (på vad konkret?)
-- "Lära sig ledarskap" (vilka specifika färdigheter?)
-- Saknar konkreta exempel
+NÄR ÄR INFO TILLRÄCKLIGT BRA?
+- "Säljare på B2B-företag" = Perfekt! Vet vad de behöver.
+- "Lära sig CRM" = Bra nog! Du kan designa det.
+- "Growth mindset" = OK! Du vet vad det betyder.
+- "Hantera kundsamtal" = Tillräckligt! Du förstår kontexten.
 
-Exempel på coaching (OBS: Detta är BARA exempel - utbildningen kan vara för VILKEN målgrupp som helst):
+STÄLL BARA FÖLJDFRÅGOR OM:
+- Något är helt vagt ("bli bättre")
+- Motsägelsefull info
+- Verkligen behövs för att designa utbildningen
 
-ANVÄNDARE: "Våra säljare behöver bli bättre på att hantera invändningar"
-DU: "Okej, jag lägger till det! 📝 Kan du ge mig ett konkret exempel på en situation där en säljare inte hanterar en invändning bra? Vad händer då? 🤔"
+Kategorier att fylla:
+1. Målgrupp - Vem?
+2. Utmaningar - Vad kämpar de med?
+3. Framgångskriterier - Hur mäter vi?
+4. Lärandemål - Vad ska de kunna?
+5. Motivation - Varför bryr de sig?
+6. Beteenden - Vilka nya beteenden?
+7. Scenarion - Konkreta användningsfall?
 
-ANVÄNDARE: "När kunden säger att det är för dyrt så ger säljaren bara rabatt direkt istället för att förstå värdet"
-DU: "Perfekt! Det fördjupar bilden! ✅ Jag uppdaterar dashboarden. Nästa viktiga fråga: Vad skulle göra denna utbildning framgångsrik för er?"
-
-Du guidar användaren genom att ta fram en "High Level Design" för en utbildning med dessa delar (i denna ordning):
-
-1. Målgruppen (vem är utbildningen för - kan vara chefer, säljare, medarbetare, lärare, tekniker osv)
-2. Vår nuvarande utmaning är... (konkreta problem och situationer hos målgruppen)
-3. Denna utbildning kommer ses som framgångsrik om... (mätbara framgångskriterier)
-4. Vad ska deltagarna lära sig? (specifika färdigheter/kunskaper)
-5. Vad motiverar dem att lära sig om ämnet? (konkreta drivkrafter)
-6. Vilka beteenden vill vi se mer av? (observerbara beteenden)
-7. Vilka konkreta scenarion är det deltagarna har svårt för idag? (verkliga situationer)
-
-Börja alltid med att fråga om målgruppen. Säg något som "Vem är den här utbildningen för?" eller "Vilken målgrupp vill ni nå?". Ta en del i taget. Coacha till kvalitet innan du går vidare.`;
+VAR GENERÖS: Acceptera "tillräckligt bra" och gå vidare. Du är expert nog att fylla i resten!`;
 
 class AIService {
   constructor() {
     this.conversationHistory = [];
-    this.currentSection = 'targetAudience'; // Vilken del av designen vi jobbar med
-    this.currentData = {}; // Aktuell data från dashboarden
-    this.sections = [
-      'targetAudience',
-      'challenges',
-      'success',
-      'learningGoals',
-      'motivation',
-      'behaviors',
-      'scenarios'
-    ];
+    this.currentSection = 'targetAudience';
+    this.currentData = {};
   }
 
   async sendMessage(userMessage, currentData = {}) {
-    if (!model) {
-      console.error('API Key:', API_KEY);
-      return {
-        response: '⚠️ AI-tjänsten är inte konfigurerad. Starta om servern (npm start) för att ladda API-nyckeln från .env filen.',
-        extractedData: null
-      };
-    }
-
-    // Spara aktuell data för användning i sammanfattning
     this.currentData = currentData;
 
+    // Lägg till användarens meddelande i historiken
+    this.conversationHistory.push({
+      role: 'user',
+      content: userMessage
+    });
+
+    // Extrahera data parallellt
+    const extractionPromise = this.extractAndSummarizeData(userMessage);
+
     try {
-      // Bygg konversationskontext
-      const context = this.buildContext(userMessage);
+      // Vänta på analysen först
+      const analysis = await extractionPromise;
       
-      console.log('Skickar till Gemini...');
+      // Bygg kontextinformation om befintlig data OCH analys
+      const dataContext = Object.keys(currentData)
+        .filter(key => currentData[key])
+        .map(key => {
+          const value = currentData[key];
+          const displayValue = Array.isArray(value) ? value.join('; ') : value;
+          return `${key}: ${displayValue}`;
+        })
+        .join('\n');
+
+      // Kolla hur många kategorier som är fyllda
+      const filledCategories = Object.keys(currentData).filter(key => {
+        const value = currentData[key];
+        if (Array.isArray(value)) return value.length > 0;
+        return value && value.trim().length > 0;
+      }).length;
       
-      // Skicka till Gemini med retry-logik
-      let result;
-      try {
-        result = await model.generateContent(context);
-      } catch (error) {
-        // Om vi får 503 (overloaded) eller 429 (rate limit), vänta och försök igen
-        if (error.message?.includes('503') || error.message?.includes('429') || error.message?.includes('overloaded')) {
-          console.log('Modellen överbelastad, väntar 2 sekunder och försöker igen...');
-          await new Promise(resolve => setTimeout(resolve, 2000));
-          result = await model.generateContent(context);
-        } else {
-          throw error;
-        }
+      const totalCategories = 7;
+      const isComplete = filledCategories >= totalCategories;
+
+      // Lägg till analys-information i kontext om tillgänglig
+      let analysisContext = '';
+      if (analysis && analysis.needsDeepening && analysis.suggestedFollowUp) {
+        analysisContext = `\n\nANALYS: Användaren gav vag information. Förslag på följdfråga: "${analysis.suggestedFollowUp}"`;
       }
+
+      // Om allt är klart, lägg till avslutningsinstruktion
+      let completionContext = '';
+      if (isComplete) {
+        completionContext = `\n\n🎉 VIKTIGT: Alla ${totalCategories} kategorier är nu fyllda! Din uppgift:
+1. Sammanfatta kort att utbildningsdesignen är klar (2-3 meningar)
+2. Fråga: "Vill du lägga till eller ändra något?"
+3. Om användaren är nöjd: Instruera dem att:
+   - Klicka på PDF-knappen för att ladda ner designen
+   - Mejla PDF:en till learning@tre.se
+   
+Exempel: "Perfekt! 🎉 Din utbildningsdesign är klar med alla delar. Vill du lägga till eller ändra något? Om allt ser bra ut kan du ladda ner PDF:en och mejla den till learning@tre.se."`;
+      }
+
+      const contextPrompt = dataContext 
+        ? `\n\nBEFINTLIG DATA I DASHBOARDEN (${filledCategories}/${totalCategories} kategorier fyllda):\n${dataContext}\n\nNuvarande fokus: ${this.getCurrentSectionName()}${analysisContext}${completionContext}`
+        : `\n\nNuvarande fokus: ${this.getCurrentSectionName()}${analysisContext}${completionContext}`;
+
+      // Bygg meddelanden för API:et
+      const messages = [
+        { role: 'system', content: SYSTEM_PROMPT + contextPrompt },
+        ...this.conversationHistory
+      ];
+
+      console.log('📤 Skickar meddelande till Azure OpenAI...');
+
+      // Använd korrekt Azure OpenAI endpoint-format
+      const url = `${ENDPOINT}/openai/deployments/${MODEL}/chat/completions?api-version=2025-01-01-preview`;
       
-      const response = await result.response;
-      const aiMessage = response.text();
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${API_KEY}`
+        },
+        body: JSON.stringify({
+          messages: messages,
+          max_completion_tokens: 500
+        })
+      });
 
-      console.log('Svar från Gemini:', aiMessage);
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Azure OpenAI API error: ${response.status} - ${errorText}`);
+      }
 
-      // Spara i historik
-      this.conversationHistory.push(
-        { role: 'user', content: userMessage },
-        { role: 'assistant', content: aiMessage }
-      );
+      const data = await response.json();
+      console.log('✅ Svar från Azure OpenAI:', data);
 
-      // Extrahera och sammanfatta data från användarens svar
-      const extractedData = await this.extractAndSummarizeData(userMessage, aiMessage);
+      const aiMessage = data.choices[0].message.content;
 
+      // Lägg till AI:ns svar i historiken
+      this.conversationHistory.push({
+        role: 'assistant',
+        content: aiMessage
+      });
+
+      // Returnera med analysen vi redan hämtat
       return {
         response: aiMessage,
-        extractedData: extractedData
+        extractedData: analysis
       };
+
     } catch (error) {
-      console.error('Detaljerat fel vid kommunikation med AI:', error);
-      console.error('Error message:', error.message);
-      console.error('Error stack:', error.stack);
-      
-      // Ge användarvänligt felmeddelande
+      console.error('❌ Fel vid kommunikation med Azure OpenAI:', error);
+
       let errorMsg = '😅 Något gick fel med AI:n.';
-      if (error.message?.includes('403')) {
-        errorMsg = '⚠️ API-nyckeln har nått sin dagsgräns. Du kan fortsätta manuellt eller vänta till imorgon.';
-      } else if (error.message?.includes('503') || error.message?.includes('overloaded')) {
-        errorMsg = '⏳ AI:n är lite överbelastad just nu. Vänta några sekunder och försök igen.';
+      if (error.message?.includes('401') || error.message?.includes('403')) {
+        errorMsg = '⚠️ API-nyckeln är ogiltig. Kontrollera Azure-credentials.';
+      } else if (error.message?.includes('404')) {
+        errorMsg = '⚠️ Kunde inte hitta endpoint. Kontrollera URL i .env';
       } else if (error.message?.includes('429')) {
         errorMsg = '⏸️ För många förfrågningar. Vänta en minut och försök igen.';
       }
-      
+
       return {
-        response: errorMsg,
+        response: errorMsg + '\n\nFel: ' + error.message,
         extractedData: null
       };
     }
   }
 
-  buildContext(userMessage) {
-    // Bygg en prompt med systemkontext och historik
-    let context = SYSTEM_PROMPT + '\n\n';
-    context += 'Konversationshistorik:\n';
-    
-    this.conversationHistory.forEach(msg => {
-      const role = msg.role === 'user' ? 'Användare' : 'Du';
-      context += `${role}: ${msg.content}\n`;
-    });
-    
-    context += `Användare: ${userMessage}\n`;
-    context += 'Du:';
-    
-    return context;
-  }
-
-  extractDataFromUserMessage(message) {
-    // Extrahera bara om svaret är tillräckligt bra (minst 20 tecken för att vara konkret)
-    if (message.trim().length < 20) return null;
-    
-    // Returnera data för aktuell sektion
-    return {
-      section: this.currentSection,
-      value: message.trim()
-    };
-  }
-
-  async extractAndSummarizeData(userMessage, aiResponse) {
-    // Extrahera ALLTID data från användarens svar (även ofullständiga)
-    // Detta gör att dashboarden uppdateras löpande
-    
-    // Skippa bara om meddelandet är för kort (mindre än 15 tecken)
-    if (userMessage.trim().length < 15) {
+  async extractAndSummarizeData(userMessage) {
+    // Skippa om meddelandet är för kort
+    if (userMessage.trim().length < 3) {
       return null;
     }
 
     try {
-      // Hämta befintligt innehåll för denna sektion
-      const existingContent = this.getExistingContent();
+      // Hämta all befintlig data för kontextmedvetenhet
+      const allData = this.currentData;
       
-      // Be AI:n sammanfatta och BERIKA befintligt innehåll
-      const summaryPrompt = `
-${existingContent ? `BEFINTLIGT INNEHÅLL för ${this.getCurrentSectionName()}: "${existingContent}"` : ''}
+      const analysisPrompt = `
+ANVÄNDARENS MEDDELANDE: "${userMessage}"
 
-Användarens NYA INFORMATION: "${userMessage}"
+BEFINTLIG DATA:
+${Object.keys(allData).map(key => {
+  const value = allData[key];
+  if (!value) return '';
+  const displayValue = Array.isArray(value) ? value.join('; ') : value;
+  return displayValue ? `${key}: ${displayValue}` : '';
+}).filter(Boolean).join('\n') || 'Ingen data än'}
 
-Din uppgift: ${existingContent ? 'BERIKA och FÖRBÄTTRA det befintliga innehållet med den nya informationen. BEHÅLL all värdefull information från både befintligt och nytt innehåll.' : 'Sammanfatta detta svar till en KONCIS och PROFESSIONELL punkt för "' + this.getCurrentSectionName() + '".'}
+NUVARANDE FOKUS: ${this.getCurrentSectionName()}
+
+Din uppgift - GÖR EN SMART ANALYS I 3 STEG:
+
+STEG 1 - RELEVANS:
+Är detta meddelande relevant för utbildningsdesign?
+- JA: Information om målgrupp, mål, utmaningar, beteenden etc
+- NEJ: Hälsningar ("hej", "tack"), personliga namn ("jag heter X"), småprat
+
+STEG 2 - KATEGORISERING (om relevant):
+Vilken/vilka av dessa kategorier passar informationen?
+- targetAudience: Vilka personerna är (roller, bakgrund, NOT personliga namn)
+- challenges: Problem och svårigheter målgruppen har
+- success: Hur vi mäter framgång, önskade resultat
+- learningGoals: Konkreta kunskaper/färdigheter att lära sig
+- motivation: Varför målgruppen bryr sig, drivkrafter
+- behaviors: Nya arbetssätt eller beteenden att implementera
+- scenarios: Konkreta situationer där de använder kunskapen
+
+STEG 3 - KVALITETSBEDÖMNING (om relevant):
+Är informationen TILLRÄCKLIGT BRA för att bygga en utbildning?
+
+CONCRETE = Bra nog att använda:
+- Roller ("säljare", "kundtjänst", "chefer")
+- Ämnen ("CRM", "kundsamtal", "growth mindset")
+- Aktiviteter ("logga samtal", "hantera feedback")
+- Kontext ("B2B", "telefonsupport", "nya medarbetare")
+- Allt som en learning designer kan jobba vidare med
+
+VAGUE = Kan användas med rimliga antaganden:
+- "Bli bättre på försäljning" (okej, vi förstår kontexten)
+- "Lära sig systemet" (vi kan fylla i vad det innebär)
+- "Hantera svåra situationer" (vi kan göra antaganden)
+Markera som VAGUE men det är fortfarande OK att lägga till!
+
+INCOMPLETE = För lite för att använda:
+- Bara nyckelord utan kontext ("lärandemål")
+- Helt otydligt vad de menar
+- Motsägelsefull information
+
+VIKTIGT: Var GENERÖS i bedömningen!
+- Både "concrete" och "vague" är BRA NOG att lägga ut
+- Som learning design expert kan vi fylla i rimliga detaljer
+- ENDAST "incomplete" behöver mer info
 
 VIKTIGA REGLER:
-1. Ta BARA med det som är relevant för utbildningsdesignen
-2. Ta BORT personliga namn (t.ex. "Hej jag heter Jesper")  
-3. Ta BORT hälsningsfraser och småprat
-4. Skriv i tredje person eller passiv form
-5. Fokusera på KÄRNAN i utmaningen/målet/beteendet
-6. Max 2-3 meningar
+- FILTRERA BORT småprat, namn, hälsningar
+- OM information är relevant: Sammanfatta KONCISET (max 2 meningar per kategori)
+- Skriv i tredje person/passiv form
+- Berika vaga påståenden med vad det troligen betyder
+- Om flera kategorier passar: inkludera alla
 
-Exempel:
-Användare: "Hej jag heter Jesper. Våra medarbetare är för dåliga på growth mindset"
-Din sammanfattning: "Medarbetare behöver utveckla ett starkare growth mindset"
+Svara i EXAKT detta JSON-format (och INGET annat):
+{
+  "isRelevant": true/false,
+  "reason": "Kort förklaring varför relevant/irrelevant",
+  "categories": [
+    {
+      "section": "kategorinamn",
+      "value": "sammanfattad text",
+      "quality": "concrete/vague/incomplete"
+    }
+  ],
+  "needsDeepening": true/false,
+  "suggestedFollowUp": "Förslag på följdfråga om needsDeepening är true"
+}
 
-Användare: "de tar sig inte an utmaningar, de är inte nyfikna och de slutar när de stöter på problem"  
-Din sammanfattning: "Medarbetare undviker utmaningar, saknar nyfikenhet och ger upp vid motgångar"
+Om meddelandet är irrelevant (t.ex. bara "hej"), sätt isRelevant: false och categories: []`;
 
-GE BARA SAMMANFATTNINGEN, INGET ANNAT:`;
+      const url = `${ENDPOINT}/openai/deployments/${MODEL}/chat/completions?api-version=2025-01-01-preview`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${API_KEY}`
+        },
+        body: JSON.stringify({
+          messages: [
+            { role: 'system', content: 'Du är en expert på att analysera, filtrera och kategorisera pedagogisk information. Svara ENDAST med valid JSON.' },
+            { role: 'user', content: analysisPrompt }
+          ],
+          max_completion_tokens: 400
+        })
+      });
 
-      const summaryResult = await model.generateContent(summaryPrompt);
-      const summary = (await summaryResult.response).text().trim();
+      if (!response.ok) {
+        throw new Error(`API error ${response.status}`);
+      }
 
-      console.log('Sammanfattad data:', summary);
+      const data = await response.json();
+      let analysis = data.choices[0].message.content.trim();
+      
+      // Extrahera JSON från svaret
+      const jsonMatch = analysis.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        analysis = jsonMatch[0];
+      }
+      
+      console.log('🧠 Smart analys:', analysis);
 
-      return {
-        section: this.currentSection,
-        value: summary
-      };
+      try {
+        const parsed = JSON.parse(analysis);
+        
+        // Om inte relevant, returnera null
+        if (!parsed.isRelevant) {
+          console.log('ℹ️ Meddelandet är inte relevant för utbildningen');
+          return null;
+        }
+        
+        // Returnera strukturerad analys
+        return {
+          categories: parsed.categories || [],
+          needsDeepening: parsed.needsDeepening || false,
+          suggestedFollowUp: parsed.suggestedFollowUp || null,
+          reason: parsed.reason
+        };
+      } catch (parseError) {
+        console.warn('⚠️ Kunde inte parsa JSON, använder fallback');
+        return null;
+      }
     } catch (error) {
-      console.error('Fel vid sammanfattning:', error);
-      // Fallback: använd originalmeddelandet om sammanfattning misslyckas
-      return this.extractDataFromUserMessage(userMessage);
+      console.error('⚠️ Fel vid analys:', error);
+      return null;
     }
   }
 
@@ -254,32 +334,30 @@ GE BARA SAMMANFATTNINGEN, INGET ANNAT:`;
   }
 
   getExistingContent() {
-    // Hämta befintligt innehåll för aktuell sektion
-    if (!this.currentData || !this.currentData[this.currentSection]) {
-      return null;
-    }
-
-    const content = this.currentData[this.currentSection];
+    const section = this.currentSection;
     
-    // Om det är en array, slå samman till en sträng
-    if (Array.isArray(content)) {
-      return content.length > 0 ? content.join('; ') : null;
+    if (section === 'targetAudience') {
+      return this.currentData.targetAudience || '';
     }
     
-    // Om det är en sträng, returnera den
-    return content || null;
+    const sectionData = this.currentData[section];
+    if (!sectionData) return '';
+    
+    if (Array.isArray(sectionData)) {
+      return sectionData.join('. ');
+    }
+    
+    return sectionData;
   }
 
-  moveToNextSection() {
-    const currentIndex = this.sections.indexOf(this.currentSection);
-    if (currentIndex < this.sections.length - 1) {
-      this.currentSection = this.sections[currentIndex + 1];
-    }
+  setCurrentSection(section) {
+    this.currentSection = section;
   }
 
   reset() {
     this.conversationHistory = [];
-    this.currentSection = 'challenges';
+    this.currentSection = 'targetAudience';
+    this.currentData = {};
   }
 }
 

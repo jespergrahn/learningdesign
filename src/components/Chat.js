@@ -34,12 +34,37 @@ const Chat = ({ onAnswerUpdate, currentData }) => {
       // Skicka till AI-tjänsten med aktuell data
       const { response, extractedData } = await aiService.sendMessage(userInput, currentData);
       
-      console.log('Extracted data:', extractedData);
+      console.log('Smart analys resultat:', extractedData);
       
-      // Uppdatera dashboard om vi fick data
-      if (extractedData && extractedData.section && extractedData.value) {
-        console.log('Uppdaterar sektion:', extractedData.section, 'med värde:', extractedData.value);
-        onAnswerUpdate(extractedData.section, extractedData.value);
+      // Uppdatera dashboard baserat på smart analys
+      if (extractedData) {
+        // Ny struktur: extractedData innehåller categories, needsDeepening, suggestedFollowUp
+        if (extractedData.categories && Array.isArray(extractedData.categories)) {
+          extractedData.categories.forEach(item => {
+            // Lägg till både concrete och vague - vi är experter och kan jobba med det!
+            // Endast incomplete behöver mer info
+            if (item.section && item.value && item.quality !== 'incomplete') {
+              console.log(`✅ Uppdaterar ${item.section}: ${item.value} (${item.quality})`);
+              onAnswerUpdate(item.section, item.value);
+            } else if (item.section && item.value) {
+              console.log(`⏳ För lite info än (${item.quality}): ${item.section}`);
+            }
+          });
+        }
+        // Backward compatibility: om det är gamla formatet (array direkt)
+        else if (Array.isArray(extractedData)) {
+          extractedData.forEach(item => {
+            if (item.section && item.value) {
+              console.log('Uppdaterar sektion:', item.section, 'med värde:', item.value);
+              onAnswerUpdate(item.section, item.value);
+            }
+          });
+        }
+        // Backward compatibility: om det är gamla formatet (enkelt objekt)
+        else if (extractedData.section && extractedData.value) {
+          console.log('Uppdaterar sektion:', extractedData.section, 'med värde:', extractedData.value);
+          onAnswerUpdate(extractedData.section, extractedData.value);
+        }
       }
 
       // Visa AI:ns svar
