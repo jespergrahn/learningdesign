@@ -30,6 +30,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 2rem;
 }
 
 .logo {
@@ -37,6 +38,39 @@
   font-weight: 700;
   color: #FF6600;
   text-decoration: none;
+  flex-shrink: 0;
+}
+
+.tagline {
+  color: #666;
+  font-size: 0.95rem;
+  flex: 1;
+}
+
+.export-btn-header {
+  padding: 0.75rem 1.5rem;
+  background: #FF6600;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.export-btn-header:hover {
+  background: #FF7700;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 102, 0, 0.25);
+}
+
+.export-btn-header span {
+  font-size: 1.1rem;
 }
 
 .tagline {

@@ -1,14 +1,9 @@
 import React, { useState } from 'react';
 import './Dashboard.css';
-import { exportToPDF } from '../utils/pdfExport';
 
 const Dashboard = ({ data, onUpdate }) => {
   const handleSave = (section, field, value) => {
     onUpdate(section, field, value);
-  };
-
-  const handleExportPDF = () => {
-    exportToPDF(data);
   };
 
   return (
@@ -157,10 +152,6 @@ const Dashboard = ({ data, onUpdate }) => {
           </section>
         </div>
       </div>
-      
-      <button className="export-btn-fixed" onClick={handleExportPDF}>
-        <span>📄</span> Exportera PDF
-      </button>
     </div>
   );
 };

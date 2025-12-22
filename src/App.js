@@ -1,10 +1,9 @@
-// src/App.js
-
 import React, { useState } from "react";
 import app from "./firebase";
 import "./App.css";
 import Chat from "./components/Chat";
 import Dashboard from "./components/Dashboard";
+import { exportToPDF } from "./utils/pdfExport";
 
 // Logga Firebase-appen så vi ser att den är initierad
 console.log("Firebase init:", app);
@@ -63,6 +62,9 @@ function App() {
         <nav className="nav">
           <a href="/" className="logo">LearningDesigner</a>
           <p className="tagline">Hjälper dig att ta reda på hur vi ska bygga en riktigt bra utbildning</p>
+          <button className="export-btn-header" onClick={() => exportToPDF(designData)}>
+            <span>📄</span> Exportera PDF
+          </button>
         </nav>
       </header>
 

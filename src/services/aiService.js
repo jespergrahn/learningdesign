@@ -96,13 +96,13 @@ class AIService {
       let completionContext = '';
       if (isComplete) {
         completionContext = `\n\n🎉 VIKTIGT: Alla ${totalCategories} kategorier är nu fyllda! Din uppgift:
-1. Sammanfatta kort att utbildningsdesignen är klar (2-3 meningar)
+1. Sammanfatta kort att utbildningsdesignen är klar (1-2 meningar)
 2. Fråga: "Vill du lägga till eller ändra något?"
 3. Om användaren är nöjd: Instruera dem att:
-   - Klicka på PDF-knappen för att ladda ner designen
+   - Ladda ner PDF:en genom att klicka på "Exportera PDF"-knappen
    - Mejla PDF:en till learning@tre.se
    
-Exempel: "Perfekt! 🎉 Din utbildningsdesign är klar med alla delar. Vill du lägga till eller ändra något? Om allt ser bra ut kan du ladda ner PDF:en och mejla den till learning@tre.se."`;
+Exempel: "Perfekt! 🎉 Din utbildningsdesign är klar. Vill du ändra något? Om allt ser bra ut kan du ladda ner PDF:en och mejla den till learning@tre.se."`;
       }
 
       const contextPrompt = dataContext 
