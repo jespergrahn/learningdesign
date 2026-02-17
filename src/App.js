@@ -3,7 +3,8 @@ import app from "./firebase";
 import "./App.css";
 import Chat from "./components/Chat";
 import Dashboard from "./components/Dashboard";
-import { exportToPDF } from "./utils/pdfExport";
+import { exportSpecToPDF } from "./utils/pdfExport";
+import aiService from "./services/aiService";
 
 // Logga Firebase-appen så vi ser att den är initierad
 console.log("Firebase init:", app);
@@ -18,6 +19,7 @@ function App() {
     behaviors: [],
     scenarios: []
   });
+  const [isGeneratingSpec, setIsGeneratingSpec] = useState(false);
 
   const handleUpdateData = (section, field, value) => {
     setDesignData(prev => {
@@ -34,25 +36,34 @@ function App() {
   };
 
   const handleAnswerUpdate = (section, value) => {
-    console.log('handleAnswerUpdate anropad:', section, value);
     setDesignData(prev => {
-      // För targetAudience (string): ersätt direkt med berikad version
       if (section === 'targetAudience') {
         return { ...prev, [section]: value };
       }
-      
-      // För arrays: ersätt sista elementet om det finns, annars lägg till
+
       if (Array.isArray(prev[section])) {
-        const newArray = prev[section].length > 0 
-          ? [...prev[section].slice(0, -1), value]  // Ersätt sista med berikad version
-          : [value];  // Lägg till första
+        const newArray = [...prev[section], value];
         return { ...prev, [section]: newArray };
       }
-      
-      const updated = { ...prev, [section]: value };
-      console.log('Uppdaterad designData:', updated);
-      return updated;
+
+      return { ...prev, [section]: value };
     });
+  };
+
+  const handleGenerateSpec = async () => {
+    setIsGeneratingSpec(true);
+    try {
+      const result = await aiService.generateElearningSpec(designData);
+      if (result.error) {
+        alert('Fel: ' + result.error);
+      } else if (result.spec) {
+        exportSpecToPDF(result.spec, designData);
+      }
+    } catch (error) {
+      alert('Något gick fel: ' + error.message);
+    } finally {
+      setIsGeneratingSpec(false);
+    }
   };
 
   return (
@@ -62,9 +73,13 @@ function App() {
         <nav className="nav">
           <a href="/" className="logo">LearningDesigner</a>
           <p className="tagline">Hjälper dig att ta reda på hur vi ska bygga en riktigt bra utbildning</p>
-          <button className="export-btn-header" onClick={() => exportToPDF(designData)}>
-            <span>📄</span> Exportera PDF
-          </button>
+          <div className="header-buttons">
+            <button className="export-btn-header" onClick={() => {
+              handleGenerateSpec();
+            }} disabled={isGeneratingSpec}>
+              <span>📄</span> {isGeneratingSpec ? 'Genererar...' : 'Exportera'}
+            </button>
+          </div>
         </nav>
       </header>
 

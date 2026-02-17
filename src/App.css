@@ -73,6 +73,21 @@
   font-size: 1.1rem;
 }
 
+.spec-btn {
+  background: #0066CC;
+}
+
+.spec-btn:hover {
+  background: #0077DD;
+  box-shadow: 0 4px 12px rgba(0, 102, 204, 0.25);
+}
+
+.spec-btn:disabled {
+  background: #99c2e8;
+  cursor: wait;
+  transform: none;
+}
+
 .tagline {
   color: #666;
   font-size: 0.95rem;
